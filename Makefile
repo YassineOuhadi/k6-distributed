@@ -2,7 +2,7 @@ CLUSTER  := k6-lab
 SERVICES := gateway order payment inventory
 BASE_URL ?= http://localhost:8080
 
-.PHONY: up cluster build load deploy redeploy status smoke fault-payment heal-payment monitoring dashboards down
+.PHONY: up cluster build load deploy redeploy status smoke fault-payment heal-payment monitoring dashboards k6-operator k6-scripts k6-run k6-logs down
 
 up: cluster build load deploy ## Create cluster, build images, deploy everything
 
@@ -53,6 +53,27 @@ monitoring:
 dashboards: ## Load Grafana dashboards from deploy/monitoring/dashboards
 	kubectl -n monitoring create configmap shop-dashboards --from-file=deploy/monitoring/dashboards \
 		--dry-run=client -o yaml | kubectl label --local -f - grafana_dashboard=1 -o yaml | kubectl apply -f -
+
+TEST        ?= load
+PARALLELISM ?= 4
+
+k6-operator: ## Install k6-operator
+	helm repo add grafana https://grafana.github.io/helm-charts >/dev/null 2>&1 || true
+	helm upgrade --install k6-operator grafana/k6-operator -n k6-operator-system --create-namespace \
+		-f deploy/k6/operator.yaml --wait --timeout 5m
+	kubectl create namespace loadtest --dry-run=client -o yaml | kubectl apply -f -
+
+k6-scripts: ## Upload k6/*.js as ConfigMap k6-scripts
+	kubectl -n loadtest create configmap k6-scripts --from-file=k6 --dry-run=client -o yaml | kubectl apply -f -
+
+# make k6-run TEST=load PARALLELISM=4
+k6-run: k6-scripts ## Run k6/$(TEST).js in the cluster on $(PARALLELISM) pods
+	kubectl -n loadtest delete testrun $(TEST) --ignore-not-found --wait
+	sed -e 's/TESTID/$(TEST)-'$$(date +%Y%m%d-%H%M%S)'/' -e 's/PARALLELISM/$(PARALLELISM)/' -e 's/TEST/$(TEST)/g' \
+		deploy/k6/testrun.yaml | kubectl apply -f -
+
+k6-logs: ## Follow the runner pods of $(TEST)
+	kubectl -n loadtest logs -f -l k6_cr=$(TEST),runner=true --max-log-requests 10 --prefix
 
 down: ## Delete the cluster
 	kind delete cluster --name $(CLUSTER)

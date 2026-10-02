@@ -1,0 +1,7 @@
+# helm upgrade --install k6-operator grafana/k6-operator -n k6-operator-system -f this file
+nodeSelector:
+  node-role.kubernetes.io/control-plane: ""
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule

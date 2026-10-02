@@ -1,0 +1,28 @@
+# rendered by `make k6-run`: TEST, PARALLELISM, TESTID
+apiVersion: k6.io/v1alpha1
+kind: TestRun
+metadata:
+  name: TEST
+  namespace: loadtest
+spec:
+  parallelism: PARALLELISM
+  script:
+    configMap:
+      name: k6-scripts
+      file: TEST.js
+  arguments: -o experimental-prometheus-rw --tag testid=TESTID
+  initializer:
+    nodeSelector: { workload: loadgen }
+  starter:
+    nodeSelector: { workload: loadgen }
+  runner:
+    image: grafana/k6:2.3.0
+    nodeSelector: { workload: loadgen }
+    env:
+      - { name: BASE_URL, value: "http://api-gateway.shop:8080" }
+      - { name: K6_PROMETHEUS_RW_SERVER_URL, value: "http://kps-kube-prometheus-stack-prometheus.monitoring:9090/api/v1/write" }
+      # full distribution, so p95 can be computed across all runner pods
+      - { name: K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM, value: "true" }
+    resources:
+      requests: { cpu: 200m, memory: 64Mi }
+      limits: { cpu: "1", memory: 256Mi }

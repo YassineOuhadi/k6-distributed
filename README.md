@@ -16,6 +16,8 @@ Request flows, error propagation, service discovery and cluster layout:
 
 Metrics, traces, PromQL examples: [docs/telemetry.md](docs/telemetry.md).
 
+Distributed k6 with k6-operator: [docs/k6.md](docs/k6.md).
+
 Four small Go services in `services/`. Every service exposes:
 
 | Endpoint            | Purpose                                         |
@@ -49,6 +51,8 @@ make heal-payment
 make up      # kind cluster + build + deploy
 make smoke   # k6 smoke test
 make monitoring  # Prometheus + Grafana
+make k6-operator # install k6-operator
+make k6-run TEST=load PARALLELISM=4  # distributed k6 in the cluster
 make down    # delete the cluster
 ```
 
@@ -59,7 +63,7 @@ never compete for CPU with the services they measure.
 
 - [x] **Phase 1**: services, fault injection, kind cluster, smoke test
 - [x] **Phase 2**: observability (kube-prometheus-stack, OTel Collector, Tempo, Grafana)
-- [ ] **Phase 3**: distributed k6 with k6-operator (`TestRun`, `parallelism`), k6 metrics to Prometheus
+- [x] **Phase 3**: distributed k6 with k6-operator (`TestRun`, `parallelism`), k6 metrics to Prometheus
 - [ ] **Phase 4**: load-testing patterns: smoke, load, stress, spike, soak, breakpoint, plus thresholds/SLOs
 - [ ] **Phase 5**: resilience: timeouts, retries + backoff/jitter, circuit breaker, bulkhead, rate limit, fallback
 - [ ] **Phase 6**: service mesh (Istio ambient): move timeouts, retries, circuit breaker (outlier detection), bulkhead (connection pool) and fault injection from Go code to mesh config, then compare under the same k6 load

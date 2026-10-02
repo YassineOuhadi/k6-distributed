@@ -267,6 +267,239 @@
       }
     },
     {
+      "id": 22,
+      "type": "row",
+      "title": "Load generator (k6, client side)",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "id": 23,
+      "type": "timeseries",
+      "title": "VUs per runner pod",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "expr": "sum by (instance_id) (k6_vus{testid=~\"$testid\"})",
+          "legendFormat": "runner {{instance_id}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 60,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 24,
+      "type": "timeseries",
+      "title": "Requests / s sent",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 6,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "expr": "sum by (name) (rate(k6_http_reqs_total{testid=~\"$testid\"}[1m]))",
+          "legendFormat": "{{name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 25,
+      "type": "timeseries",
+      "title": "p95 seen by k6",
+      "description": "Merged across all runner pods (native histograms). Includes network time from the loadgen node.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 6,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (name) (rate(k6_http_req_duration_seconds{testid=~\"$testid\"}[1m])))",
+          "legendFormat": "{{name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 26,
+      "type": "timeseries",
+      "title": "Failed requests and checks",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 6,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "expr": "avg(k6_http_req_failed_rate{testid=~\"$testid\"})",
+          "legendFormat": "http_req_failed"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "B",
+          "expr": "1 - avg(k6_checks_rate{testid=~\"$testid\"})",
+          "legendFormat": "checks failed"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
       "type": "row",
       "title": "Per service (RED)",
       "collapsed": false,
@@ -274,7 +507,7 @@
       "id": 6,
       "gridPos": {
         "x": 0,
-        "y": 5,
+        "y": 14,
         "w": 24,
         "h": 1
       }
@@ -326,7 +559,7 @@
       "id": 7,
       "gridPos": {
         "x": 0,
-        "y": 6,
+        "y": 15,
         "w": 8,
         "h": 8
       }
@@ -378,7 +611,7 @@
       "id": 8,
       "gridPos": {
         "x": 8,
-        "y": 6,
+        "y": 15,
         "w": 8,
         "h": 8
       }
@@ -430,7 +663,7 @@
       "id": 9,
       "gridPos": {
         "x": 16,
-        "y": 6,
+        "y": 15,
         "w": 8,
         "h": 8
       }
@@ -443,7 +676,7 @@
       "id": 10,
       "gridPos": {
         "x": 0,
-        "y": 14,
+        "y": 23,
         "w": 24,
         "h": 1
       }
@@ -495,7 +728,7 @@
       "id": 11,
       "gridPos": {
         "x": 0,
-        "y": 15,
+        "y": 24,
         "w": 12,
         "h": 9
       }
@@ -550,7 +783,7 @@
       "id": 12,
       "gridPos": {
         "x": 12,
-        "y": 15,
+        "y": 24,
         "w": 12,
         "h": 9
       }
@@ -563,7 +796,7 @@
       "id": 13,
       "gridPos": {
         "x": 0,
-        "y": 24,
+        "y": 33,
         "w": 24,
         "h": 1
       }
@@ -589,7 +822,7 @@
       "id": 14,
       "gridPos": {
         "x": 0,
-        "y": 25,
+        "y": 34,
         "w": 12,
         "h": 12
       }
@@ -641,7 +874,7 @@
       "id": 15,
       "gridPos": {
         "x": 12,
-        "y": 25,
+        "y": 34,
         "w": 12,
         "h": 12
       }
@@ -654,7 +887,7 @@
       "id": 16,
       "gridPos": {
         "x": 0,
-        "y": 37,
+        "y": 46,
         "w": 24,
         "h": 1
       }
@@ -685,7 +918,7 @@
       "id": 17,
       "gridPos": {
         "x": 0,
-        "y": 38,
+        "y": 47,
         "w": 12,
         "h": 10
       }
@@ -716,7 +949,7 @@
       "id": 18,
       "gridPos": {
         "x": 12,
-        "y": 38,
+        "y": 47,
         "w": 12,
         "h": 10
       }
@@ -729,7 +962,7 @@
       "id": 19,
       "gridPos": {
         "x": 0,
-        "y": 48,
+        "y": 57,
         "w": 24,
         "h": 1
       }
@@ -781,7 +1014,7 @@
       "id": 20,
       "gridPos": {
         "x": 0,
-        "y": 49,
+        "y": 58,
         "w": 12,
         "h": 8
       }
@@ -833,14 +1066,38 @@
       "id": 21,
       "gridPos": {
         "x": 12,
-        "y": 49,
+        "y": 58,
         "w": 12,
         "h": 8
       }
     }
   ],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "name": "testid",
+        "label": "k6 test",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "query": {
+          "query": "label_values(k6_vus, testid)",
+          "refId": "testid"
+        },
+        "definition": "label_values(k6_vus, testid)",
+        "refresh": 2,
+        "sort": 2,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
   },
   "annotations": {
     "list": []
