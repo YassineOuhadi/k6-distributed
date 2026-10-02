@@ -127,6 +127,10 @@ Config is per pod and held in memory:
 Applied through `make fault-payment FAULT='...'` and cleared with `make heal-payment`.
 Since the config is per pod, a service with several replicas needs it set on each pod.
 
+## Telemetry
+
+Metrics, traces and logs: [telemetry.md](telemetry.md).
+
 ## Service discovery
 
 | Service | Env | Value |
@@ -144,7 +148,7 @@ across the pods of that Deployment.
 
 | Node | Label | Runs |
 |---|---|---|
-| control-plane | — | Kubernetes control plane, monitoring (namespace `monitoring`) |
+| control-plane | — | Kubernetes control plane, monitoring: Prometheus, Grafana, otel-collector (namespace `monitoring`) |
 | worker | `workload=app` | shop services (`nodeSelector`) |
 | worker2 | `workload=loadgen` | k6 runners (phase 3) |
 

@@ -43,6 +43,8 @@ monitoring:
 	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts >/dev/null 2>&1 || true
 	helm upgrade --install kps prometheus-community/kube-prometheus-stack \
 		-n monitoring --create-namespace -f deploy/monitoring/kube-prometheus-stack.yaml --wait --timeout 10m
+	kubectl apply -f deploy/monitoring/otel-collector.yaml
+	kubectl -n monitoring rollout status deploy/otel-collector --timeout=120s
 
 down: ## Delete the cluster
 	kind delete cluster --name $(CLUSTER)

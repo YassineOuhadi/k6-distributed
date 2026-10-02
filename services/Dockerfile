@@ -1,5 +1,5 @@
 # --build-arg SERVICE=gateway|order|payment|inventory
-FROM golang:1.24-alpine AS build
+FROM golang:1.26-alpine AS build
 ARG SERVICE
 WORKDIR /src
 COPY go.mod ./

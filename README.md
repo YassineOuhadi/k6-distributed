@@ -14,6 +14,8 @@ k6 ──► api-gateway ──► order-service ──► inventory-service   (
 Request flows, error propagation, service discovery and cluster layout:
 [docs/architecture.md](docs/architecture.md).
 
+Metrics, traces, PromQL examples: [docs/telemetry.md](docs/telemetry.md).
+
 Four small Go services in `services/`. Every service exposes:
 
 | Endpoint            | Purpose                                         |

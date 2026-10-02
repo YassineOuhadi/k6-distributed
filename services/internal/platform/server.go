@@ -10,6 +10,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"go.opentelemetry.io/otel/trace"
 )
 
 func Env(key, def string) string {
@@ -50,14 +52,32 @@ func accessLog(log *slog.Logger, next http.Handler) http.Handler {
 		case rec.status >= 400:
 			level = slog.LevelWarn
 		}
-		log.Log(r.Context(), level, "request", "method", r.Method, "path", r.URL.Path, "status", rec.status,
-			"duration_ms", time.Since(start).Milliseconds())
+		attrs := []any{"method", r.Method, "path", r.URL.Path, "status", rec.status,
+			"duration_ms", time.Since(start).Milliseconds()}
+		if sc := trace.SpanContextFromContext(r.Context()); sc.IsValid() {
+			attrs = append(attrs, "trace_id", sc.TraceID().String())
+		}
+		log.Log(r.Context(), level, "request", attrs...)
+	})
+}
+
+// sets r.Pattern before the fault middleware, so injected errors keep their http.route
+func withPattern(mux *http.ServeMux, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, r.Pattern = mux.Handler(r)
+		next.ServeHTTP(w, r)
 	})
 }
 
 func Run(name string, mux *http.ServeMux) {
 	log := slog.New(slog.NewJSONHandler(os.Stdout, nil)).With("service", name)
 	slog.SetDefault(log)
+
+	shutdownTelemetry, err := setupTelemetry(context.Background(), name)
+	if err != nil {
+		log.Error("telemetry setup failed", "err", err)
+		os.Exit(1)
+	}
 
 	faults := &FaultInjector{}
 	mux.HandleFunc("/admin/fault", faults.AdminHandler)
@@ -67,7 +87,7 @@ func Run(name string, mux *http.ServeMux) {
 	addr := ":" + Env("PORT", "8080")
 	srv := &http.Server{
 		Addr:              addr,
-		Handler:           accessLog(log, faults.Middleware(mux)),
+		Handler:           instrumentHandler(accessLog(log, withPattern(mux, faults.Middleware(mux)))),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
@@ -86,4 +106,7 @@ func Run(name string, mux *http.ServeMux) {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	_ = srv.Shutdown(shutdownCtx)
+	if err := shutdownTelemetry(shutdownCtx); err != nil {
+		log.Error("telemetry shutdown failed", "err", err)
+	}
 }

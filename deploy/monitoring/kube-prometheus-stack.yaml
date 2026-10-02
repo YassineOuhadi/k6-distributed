@@ -50,6 +50,8 @@ prometheus:
     ruleSelectorNilUsesHelmValues: false
     # k6 remote write
     enableRemoteWriteReceiver: true
+    # metrics from otel-collector
+    enableOTLPReceiver: true
     resources:
       requests: { cpu: 200m, memory: 400Mi }
       limits: { memory: 1Gi }

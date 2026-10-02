@@ -15,6 +15,7 @@ func proxy(target string) http.Handler {
 		panic(err)
 	}
 	return &httputil.ReverseProxy{
+		Transport: platform.InstrumentTransport(http.DefaultTransport),
 		Rewrite: func(r *httputil.ProxyRequest) {
 			r.SetURL(u)
 			r.Out.URL.Path = strings.TrimPrefix(r.In.URL.Path, "/api")

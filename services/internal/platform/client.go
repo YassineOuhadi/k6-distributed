@@ -16,7 +16,7 @@ type Client struct {
 }
 
 func NewClient(baseURL string, timeout time.Duration) *Client {
-	return &Client{BaseURL: baseURL, HTTP: &http.Client{Timeout: timeout}}
+	return &Client{BaseURL: baseURL, HTTP: &http.Client{Timeout: timeout, Transport: InstrumentTransport(http.DefaultTransport)}}
 }
 
 type UpstreamError struct {
