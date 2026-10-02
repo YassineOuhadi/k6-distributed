@@ -22,8 +22,9 @@ data:
       otlphttp/prometheus:
         metrics_endpoint: http://kps-kube-prometheus-stack-prometheus.monitoring:9090/api/v1/otlp/v1/metrics
         tls: { insecure: true }
-      debug:
-        verbosity: basic
+      otlp/tempo:
+        endpoint: tempo.monitoring:4317
+        tls: { insecure: true }
 
     extensions:
       health_check: { endpoint: 0.0.0.0:13133 }
@@ -38,7 +39,7 @@ data:
         traces:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [debug]
+          exporters: [otlp/tempo]
 ---
 apiVersion: apps/v1
 kind: Deployment

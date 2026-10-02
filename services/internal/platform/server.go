@@ -65,6 +65,7 @@ func accessLog(log *slog.Logger, next http.Handler) http.Handler {
 func withPattern(mux *http.ServeMux, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, r.Pattern = mux.Handler(r)
+		setSpanRoute(r)
 		next.ServeHTTP(w, r)
 	})
 }

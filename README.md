@@ -58,7 +58,7 @@ never compete for CPU with the services they measure.
 ## Roadmap
 
 - [x] **Phase 1**: services, fault injection, kind cluster, smoke test
-- [ ] **Phase 2**: observability (kube-prometheus-stack, OTel Collector, Tempo, Grafana)
+- [x] **Phase 2**: observability (kube-prometheus-stack, OTel Collector, Tempo, Grafana)
 - [ ] **Phase 3**: distributed k6 with k6-operator (`TestRun`, `parallelism`), k6 metrics to Prometheus
 - [ ] **Phase 4**: load-testing patterns: smoke, load, stress, spike, soak, breakpoint, plus thresholds/SLOs
 - [ ] **Phase 5**: resilience: timeouts, retries + backoff/jitter, circuit breaker, bulkhead, rate limit, fallback

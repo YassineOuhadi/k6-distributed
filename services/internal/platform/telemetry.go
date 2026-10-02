@@ -17,6 +17,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // Endpoint, resource attributes and sampling come from the standard OTEL_* env vars.
@@ -78,6 +79,18 @@ func instrumentHandler(h http.Handler) http.Handler {
 
 func InstrumentTransport(rt http.RoundTripper) http.RoundTripper {
 	return otelhttp.NewTransport(rt)
+}
+
+// otelhttp puts http.route on metrics only
+func setSpanRoute(r *http.Request) {
+	if r.Pattern == "" {
+		return
+	}
+	route := r.Pattern
+	if _, after, ok := strings.Cut(route, " "); ok {
+		route = after
+	}
+	trace.SpanFromContext(r.Context()).SetAttributes(semconv.HTTPRoute(route))
 }
 
 func isInternalPath(p string) bool {

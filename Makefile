@@ -2,7 +2,7 @@ CLUSTER  := k6-lab
 SERVICES := gateway order payment inventory
 BASE_URL ?= http://localhost:8080
 
-.PHONY: up cluster build load deploy redeploy status smoke fault-payment heal-payment monitoring down
+.PHONY: up cluster build load deploy redeploy status smoke fault-payment heal-payment monitoring dashboards down
 
 up: cluster build load deploy ## Create cluster, build images, deploy everything
 
@@ -43,8 +43,16 @@ monitoring:
 	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts >/dev/null 2>&1 || true
 	helm upgrade --install kps prometheus-community/kube-prometheus-stack \
 		-n monitoring --create-namespace -f deploy/monitoring/kube-prometheus-stack.yaml --wait --timeout 10m
+	helm repo add grafana https://grafana.github.io/helm-charts >/dev/null 2>&1 || true
+	helm upgrade --install tempo grafana/tempo -n monitoring -f deploy/monitoring/tempo.yaml --wait --timeout 5m
 	kubectl apply -f deploy/monitoring/otel-collector.yaml
+	kubectl -n monitoring rollout restart deploy/otel-collector
 	kubectl -n monitoring rollout status deploy/otel-collector --timeout=120s
+	$(MAKE) dashboards
+
+dashboards: ## Load Grafana dashboards from deploy/monitoring/dashboards
+	kubectl -n monitoring create configmap shop-dashboards --from-file=deploy/monitoring/dashboards \
+		--dry-run=client -o yaml | kubectl label --local -f - grafana_dashboard=1 -o yaml | kubectl apply -f -
 
 down: ## Delete the cluster
 	kind delete cluster --name $(CLUSTER)

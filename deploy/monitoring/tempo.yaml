@@ -1,0 +1,26 @@
+# helm upgrade --install tempo grafana/tempo -n monitoring -f this file
+
+nodeSelector:
+  node-role.kubernetes.io/control-plane: ""
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+
+tempo:
+  reportingEnabled: false
+  retention: 24h
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { memory: 512Mi }
+
+  # service graph: caller -> callee request/error/latency metrics, sent to Prometheus
+  metricsGenerator:
+    enabled: true
+    remoteWriteUrl: http://kps-kube-prometheus-stack-prometheus.monitoring:9090/api/v1/write
+    registry:
+      collection_interval: 15s
+  overrides:
+    defaults:
+      metrics_generator:
+        processors: [service-graphs]
