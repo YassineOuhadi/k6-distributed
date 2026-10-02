@@ -1,0 +1,4 @@
+.DS_Store
+*.log
+/bin/
+k6/results/

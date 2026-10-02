@@ -1,0 +1,17 @@
+# app and loadgen on separate nodes
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: k6-lab
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 30080 # api-gateway
+        hostPort: 8080
+      - containerPort: 30030 # grafana
+        hostPort: 3000
+  - role: worker
+    labels:
+      workload: app
+  - role: worker
+    labels:
+      workload: loadgen
