@@ -144,7 +144,7 @@ across the pods of that Deployment.
 
 | Node | Label | Runs |
 |---|---|---|
-| control-plane | — | Kubernetes control plane |
+| control-plane | — | Kubernetes control plane, monitoring (namespace `monitoring`) |
 | worker | `workload=app` | shop services (`nodeSelector`) |
 | worker2 | `workload=loadgen` | k6 runners (phase 3) |
 

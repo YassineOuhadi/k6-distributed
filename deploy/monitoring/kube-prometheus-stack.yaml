@@ -1,0 +1,70 @@
+# helm upgrade --install kps prometheus-community/kube-prometheus-stack -n monitoring -f this file
+
+x-placement: &placement
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+
+alertmanager:
+  enabled: false
+
+# not reachable on kind
+kubeEtcd:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeProxy:
+  enabled: false
+
+defaultRules:
+  rules:
+    alertmanager: false
+    etcd: false
+    kubeSchedulerAlerting: false
+    kubeSchedulerRecording: false
+    kubeControllerManager: false
+    kubeProxy: false
+
+prometheusOperator:
+  <<: *placement
+  admissionWebhooks:
+    patch:
+      <<: *placement
+
+kube-state-metrics:
+  <<: *placement
+
+prometheus:
+  prometheusSpec:
+    <<: *placement
+    retention: 1d
+    scrapeInterval: 15s
+    # pick up every ServiceMonitor / PodMonitor, not only the ones labelled for this release
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    # k6 remote write
+    enableRemoteWriteReceiver: true
+    resources:
+      requests: { cpu: 200m, memory: 400Mi }
+      limits: { memory: 1Gi }
+
+grafana:
+  <<: *placement
+  adminUser: admin
+  adminPassword: admin
+  service:
+    type: NodePort
+    nodePort: 30030
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { memory: 512Mi }
+  grafana.ini:
+    auth.anonymous:
+      enabled: true
+      org_role: Viewer

@@ -46,6 +46,7 @@ make heal-payment
 ```bash
 make up      # kind cluster + build + deploy
 make smoke   # k6 smoke test
+make monitoring  # Prometheus + Grafana
 make down    # delete the cluster
 ```
 

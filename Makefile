@@ -2,7 +2,7 @@ CLUSTER  := k6-lab
 SERVICES := gateway order payment inventory
 BASE_URL ?= http://localhost:8080
 
-.PHONY: up cluster build load deploy redeploy status smoke fault-payment heal-payment down
+.PHONY: up cluster build load deploy redeploy status smoke fault-payment heal-payment monitoring down
 
 up: cluster build load deploy ## Create cluster, build images, deploy everything
 
@@ -38,6 +38,11 @@ fault-payment:
 heal-payment:
 	@kubectl -n shop port-forward deploy/payment-service 18082:8080 >/dev/null & PF=$$!; sleep 2; \
 	curl -s -XDELETE localhost:18082/admin/fault; echo; kill $$PF
+
+monitoring:
+	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts >/dev/null 2>&1 || true
+	helm upgrade --install kps prometheus-community/kube-prometheus-stack \
+		-n monitoring --create-namespace -f deploy/monitoring/kube-prometheus-stack.yaml --wait --timeout 10m
 
 down: ## Delete the cluster
 	kind delete cluster --name $(CLUSTER)
